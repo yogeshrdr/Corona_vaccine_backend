@@ -1,11 +1,14 @@
 const {Router}=require('express')
 const database=require('../../database/connect')
-const { createUser,findUser,handelTokenForgot,setUserPassword} =require('./service')
+const { createUser,findUser,handelTokenForgot,setUserPassword,getUserData} =require('./service')
 const validateSchema=require('../../shared/middlewares/validateSchema')
-const userSchema=require('./schema')
+const {userSchema,downloadSchema}=require('./schema')
 const {Auth} = require('../../shared/middlewares/checkAuth')
 const ApiError=require('../../shared/error/apiError')
-
+const path=require('path')
+const fs=require('fs')
+const pdf=require('html-pdf')
+const ejs=require('ejs')
 
 const handelUserAuth=()=>{
      const app=Router()
@@ -14,6 +17,7 @@ const handelUserAuth=()=>{
      app.get("/authCheck",Auth,handelAuthCheck)
      app.post("/forgotPassword",handelForgot)
      app.post("/setUserPassword",Auth,handelForgotPassword)
+     app.post("/getVaccineCertificate",Auth,validateSchema(downloadSchema),handelCertificate)
      return app;
 }
 
@@ -65,7 +69,28 @@ const handelForgotPassword=async (req,res)=>{
       }
 }
 
-
+const handelCertificate=async (req,res)=>{
+      try{
+           
+            const data=await getUserData(req.user.email,req.body)
+            console.log(data)
+            const filePathName = path.join(__dirname, '..', 'utils', 'certificate.ejs')
+            const htmlString = fs.readFileSync(filePathName).toString();
+            const html = ejs.render(htmlString, { myData: data })
+           // const html = ejs.render(htmlString)
+            pdf.create(html).toStream((err, stream) => {
+                if (err) {
+                    res.json({ success: 'false', error: 'Error in Generating pdf' })
+                } else {
+                    res.contentType('application/pdf')
+                    res.attachment()
+                    stream.pipe(res)
+                }
+            })
+      }catch(err){
+            res.json({success: false,message: err.message})
+      }
+}
 
 module.exports=handelUserAuth
 

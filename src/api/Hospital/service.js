@@ -20,7 +20,8 @@ exports.handelLogin=async ({email,password})=>{
 exports.getUserData=async (email)=>{
     try{
         const data=await (await database()).collection('Hospitals').findOne({email: email})
-        return data.userList
+        const userData=[...data.userList,...data.vaccinatedList]
+        return userData
     }catch(error){
         throw(error)
     }
@@ -31,6 +32,7 @@ exports.vaccinateUser=async (obj,email)=>{
         console.log(obj)
         await (await database()).collection('User').updateOne({email: obj.email, "Registered.ID": obj.userID},{$set : {"Registered.$.vaccinated": true}})
         var data=await (await database()).collection('Hospitals').findOneAndUpdate({email: email},{$pull : {userList: {userID: obj.userID}},$inc : {totalVaccinated: 1,totalVaccineStock: -1}})
+        await (await database()).collection('Identity').findOneAndUpdate({ID: obj.userID},{$set: {Vaccinated: true}})
         console.log(data)
         data=data.value
         const updated=data.userList.filter((e)=> e.userID===obj.userID)
@@ -52,6 +54,7 @@ exports.getAllDetails=async (email)=>{
               return e;
         })
         const obj={
+            ...data,
             stock: data.totalVaccineStock,
             Vaccinated: data.totalVaccinated,
             todayAppointment: updatedData.length ? updatedData[0].total : 0,
@@ -62,6 +65,16 @@ exports.getAllDetails=async (email)=>{
       throw({message: error.message})
     }
 }
+
+exports.orderVaccine=async (email,obj)=>{
+    try{
+        var date=getdate(0)
+        await (await database()).collection('Hospitals').findOneAndUpdate({email : email},{$push : {orders : {orderedVaccine: obj.required,orderedDate: date,orderStatus : obj.orderStatus,orderID: obj.orderID}}})
+    }catch(error){
+        throw({message: error.message})
+    }
+}
+
 
 const getdate=(num)=>{
     var newDate= new Date()

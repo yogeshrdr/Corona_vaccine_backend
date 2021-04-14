@@ -38,7 +38,7 @@ exports.handelTokenForgot=async ({email})=>{
        const data= await (await database()).collection('User').findOne({email: email})
        if(!data) throw({message: "User with this Email does not exists"})
        const token=await getToken({email: email})
-       var URL= `http://localhost:3000/users/setPassword/${token}`
+       var URL= `http://localhost:4000/users/setPassword/${token}`
        sendUserResetPassword({Email: data.email,URL: URL})
     }catch(error){
         console.log(error.message)
@@ -54,6 +54,25 @@ exports.setUserPassword=async (obj,email)=>{
     }catch(error){
         console.log(error)
          throw({message: 'Some Error Occured Try again'})
+    }
+}
+
+exports.getUserData=async (email,obj)=>{
+    try{
+        var data=await (await database()).collection('User').findOne({email: email})
+   
+       
+        var mydata=data.Registered.filter((e)=> e.ID===obj.userID)
+        const hospitalData=await (await (database())).collection('Hospitals').findOne({hospitalID:  mydata[0].hospitalID})
+        mydata[0].hospitalName=hospitalData.name;
+        const stateData=await (await (database())).collection('States').findOne({stateID: hospitalData.stateCode})
+        mydata[0].stateName=stateData.name
+        const districtData=await (await (database())).collection('Districts').findOne({districtID: hospitalData.districtCode})
+        mydata[0].districtName=districtData.name
+        return mydata[0]
+    }catch(error){
+        console.log(error)
+        throw({message: 'Some Error Occured Try again'})
     }
 }
 
