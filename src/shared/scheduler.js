@@ -6,16 +6,24 @@ const Scheduler=async ()=>{
        try{
            console.log("Scheduler")
            const obj={
-             Date: getdate(6),
+             Date: getdate(1),
              total: 0,
              status: true
-         }
+           }
          var dateToday=getdate(0);
         await(await database()).collection('Hospitals').updateMany({},{$push : {availableDates: obj}})
-        //const data=await (await database()).collection('Hospitals').find({},{userList: 1,_id: 0}).toArray()
-       // console.log(data)
-        //await handelShift(data)
-        await (await database()).collection('Hospitals').updateMany({},{$pull: {availableDates: {Date : {$lt : dateToday}}}})
+        const data=await (await database()).collection('Hospitals').find({}).toArray()
+         data.map( (a)=>{
+            if(a.userList)
+            { a.userList.map(async (e)=>{
+                if(e.scheduleDate<dateToday)
+                {
+                    await (await database()).collection('User').updateOne({email: e.email, "Registered.ID": e.userID},{$set : {"Registered.$.scheduled": false, "Registered.$.scheduleDate": obj.selectedDate,"Registered.$.hospitalID": obj.hospitalID}})  
+                }
+            })
+           }
+        })
+        await (await database()).collection('Hospitals').updateMany({},{$pull: {availableDates: {Date : {$lt : dateToday}},userList: {scheduleDate : {$lt: dateToday}}}})
        }catch(err)
        {
            console.log(err)
@@ -23,25 +31,6 @@ const Scheduler=async ()=>{
     })
 }
 
-const handelShift=async (data)=>{
-    
-        const dateToday=getdate(5);
-        const updatedData=data.map((e)=>{
-            if(e.userList)
-           { var temp=e.userList.filter((a)=>{
-                return ((a.scheduleDate<dateToday))
-            })
-            return temp}
-        })
-        console.log("Bye"+updatedData)
-    await updatedData.map(async e=>{
-            await e.map(async (a)=>{
-                await (await database()).collection('User').updateOne({email: email, "Registered.ID": a.userID},{$set : {"Registered.$.scheduled": false,"Registered.$.vaccinated": false},$unset : {"Registered.scheduleDate": 1}})
-            })
-        })
-    
-    
-}
 
 const getdate=(num)=>{
        var newDate= new Date()

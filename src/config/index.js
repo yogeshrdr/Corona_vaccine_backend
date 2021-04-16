@@ -10,5 +10,8 @@ module.exports={
 
      //SENDGRID API KEY
 
-     SENDGRID_API_KEY: process.env.SENDGRID_API
+     SENDGRID_API_KEY: process.env.SENDGRID_API,
+
+     //ADMIN PASS HASH
+     ADMIN_PASS: process.env.ADMIN_PASS
 }

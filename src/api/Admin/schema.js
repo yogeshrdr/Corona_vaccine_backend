@@ -39,3 +39,14 @@ exports.getSchema=yup.object().shape({
     districtID: yup.string().required()
 })
 
+exports.changeStatusSchema=yup.object().shape({
+    hospitalID: yup.string().required(),
+    vaccinationStatus: yup.boolean().required()
+})
+
+exports.acceptSchema=yup.object().shape({
+    hospitalID: yup.string().required(),
+    orderID: yup.string().required(),
+    orderedVaccine: yup.number().required(),
+    
+})

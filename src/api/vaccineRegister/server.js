@@ -16,7 +16,7 @@ const handelVaccineReg=()=>{
 
 const handelReg=async (req,res)=>{
     try{
-        console.log("I am")
+       
         await createReg(req.body,req.user.email)
         res.json({success: true,msg: 'Successfully Registered User'})
     }catch(error)
@@ -36,7 +36,7 @@ const handelSched=async (req,res)=>{
 
 const handelSendingRegData=async (req,res)=>{
     try{
-        console.log("HII DEBESH")
+      
         const Data=await getAllRegUser(req.user.email)
         if(Data) return res.json({success: true, data: Data})
         else  res.json({success: true,data: []})
